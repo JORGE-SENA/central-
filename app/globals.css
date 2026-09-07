@@ -3,18 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --background: #F8F9FA;
-  --foreground: #1A1A1E;
+  --background: #0A0A0B;
+  --foreground: #E0E0E6;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
 }
 
-/* Scrollbar Estilo Analizis (Light) */
+/* Scrollbar Estilo Analizis Dark Elite */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
@@ -22,14 +21,13 @@ body {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #E9ECEF;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #000000;
+  background: #5E5CE6;
 }
 
-/* Scrollbar Estilo Analizis (Dark for Terminal) */
 .custom-scrollbar-dark::-webkit-scrollbar {
   width: 4px;
 }

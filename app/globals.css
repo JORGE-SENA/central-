@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0A0A0B;
+  --foreground: #E0E0E6;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar Estilo Analizis Dark Elite */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #5E5CE6;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar-dark::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar-dark::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}

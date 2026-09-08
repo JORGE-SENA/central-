@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central - Core Panel & Auditoría de Errores</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-[#0b0f19] text-slate-100 font-sans antialiased min-h-screen flex">
+
+    <!-- Sidebar de Navegación Estilo Figma -->
+    <aside
+        class="w-64 bg-[#111827] border-r border-slate-800/80 flex flex-col justify-between hidden md:flex sticky top-0 h-screen z-30">
+        <div>
+            <!-- Logo / Header -->
+            <div class="p-5 flex items-center space-x-3 border-b border-slate-800/60">
+                <div
+                    class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-600/30">
+                    CP</div>
+                <span class="font-bold tracking-wider text-slate-200">CORE PANEL</span>
+            </div>
+
+            <!-- Menú -->
+            <div class="px-4 py-6 space-y-6">
+                <div>
+                    <p class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase px-3 mb-2">Menu</p>
+                    <nav class="space-y-1">
+                        <a href="#"
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-indigo-600/10 text-indigo-400 font-medium text-sm border border-indigo-500/20">
+                            <i class="fa-solid fa-chart-pie"></i> Dashboard Central
+                        </a>
+                    </nav>
+                </div>
+                <div>
+                    <p class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase px-3 mb-2">Admin Tools &
+                        Seguridad</p>
+                    <nav class="space-y-1 text-slate-400 text-sm">
+                        <a href="#"
+                            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-800/50 transition-all">
+                            <span class="flex items-center gap-3"><i class="fa-solid fa-shield-halved"></i> Blindaje
+                                HTTP</span>
+                        </a>
+                        <a href="#"
+                            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-800/50 transition-all">
+                            <span class="flex items-center gap-3"><i class="fa-solid fa-bug-slash"></i> Errores 404 /
+                                501</span>
+                        </a>
+                        <a href="#"
+                            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-800/50 transition-all">
+                            <span class="flex items-center gap-3"><i class="fa-solid fa-terminal"></i> Logs y
+                                Consola</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta Upgrade Pro / Estado -->
+        <div class="p-4 m-4 bg-gradient-to-br from-indigo-950/40 to-slate-900 border border-indigo-500/30 rounded-2xl">
+            <p class="text-xs font-semibold text-slate-200 mb-1">CENTRAL SECURE MODE</p>
+            <p class="text-[11px] text-slate-400 mb-3">Auditoría activa sincronizada con repositorio.</p>
+            <div class="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sistema Protegido
+            </div>
+        </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+        <!-- Header Superior -->
+        <header
+            class="h-16 bg-[#111827]/80 backdrop-blur-md border-b border-slate-800/80 px-6 flex justify-between items-center sticky top-0 z-20">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+                <span class="text-sm text-slate-300 font-medium">Hello, Auditor. Welcome back to Central.</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-xs bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-300">Modo
+                    Offline / Git Ready</span>
+                <div
+                    class="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-bold text-xs">
+                    JH</div>
+            </div>
+        </header>
+
+        <!-- Grilla del Dashboard Estilo Figma -->
+        <main class="p-6 space-y-6 flex-1 overflow-y-auto">
+
+            <!-- Fila de Tarjetas de Métricas -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-[#111827] border border-slate-800/80 rounded-2xl p-4 shadow-lg">
+                    <p class="text-xs text-slate-400 mb-1">Total Auditorías</p>
+                    <h3 class="text-2xl font-bold text-slate-100" id="metric-total">0</h3>
+                    <p class="text-[10px] text-emerald-400 mt-2"><i class="fa-solid fa-arrow-up"></i> 100% Cobertura de
+                        Errores</p>
+                </div>
+                <div class="bg-[#111827] border border-slate-800/80 rounded-2xl p-4 shadow-lg">
+                    <p class="text-xs text-slate-400 mb-1">Valor Protegido / Facturado</p>
+                    <h3 class="text-2xl font-bold text-indigo-400" id="metric-revenue">$0</h3>
+                    <p class="text-[10px] text-indigo-400 mt-2">Tarifa Base Optimizada</p>
+                </div>
+                <div class="bg-[#111827] border border-slate-800/80 rounded-2xl p-4 shadow-lg">
+                    <p class="text-xs text-slate-400 mb-1">Estado de Servidores</p>
+                    <h3 class="text-xl font-bold text-emerald-400 mt-1">Seguro (0 Leaks)</h3>
+                    <p class="text-[10px] text-slate-400 mt-2">Filtros 404/501 Activos</p>
+                </div>
+                <div class="bg-[#111827] border border-slate-800/80 rounded-2xl p-4 shadow-lg">
+                    <p class="text-xs text-slate-400 mb-1">Conexión con Repositorio</p>
+                    <h3 class="text-xl font-bold text-cyan-400 mt-1">Sincronizado</h3>
+                    <p class="text-[10px] text-slate-400 mt-2">Central.git Directo</p>
+                </div>
+            </div>
+
+            <!-- Sección de Acceso Rápido y Formulario de Registro -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Formulario de Registro de Auditoría (Columna Izquierda) -->
+                <div class="bg-[#111827] border border-slate-800/80 rounded-2xl p-5 shadow-lg">
+                    <h3 class="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-indigo-400"></i> Registrar Incidente / Blindaje
+                    </h3>
+                    <form id="audit-form" class="space-y-4">
+                        <div>
+                            <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Proyecto /
+                                Módulo</label>
+                            <input type="text" id="project-name" required
+                                class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl p-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                                placeholder="Ej. API Centralizada / Auth">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Tipo de Falla
+                                / Vulnerabilidad</label>
+                            <select id="audit-severity"
+                                class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl p-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                                <option value="404" selected>HTTP 404 - Ruta Oculta / Fuga de Directorio</option>
+                                <option value="501">HTTP 501 - Método No Implementado</option>
+                                <option value="MemoryLeak">Memory Leak / Consumo de Recursos</option>
+                                <option value="Injection">Intento de Inyección de Código</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Solución
+                                Aplicada (Blindaje)</label>
+                            <textarea id="audit-desc" rows="3" required
+                                class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl p-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                                placeholder="Ej. Enmascaramiento de Stack Trace y redirección limpia de errores..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Honorarios de
+                                Auditoría ($)</label>
+                            <input type="number" id="audit-fee" value="200000"
+                                class="w-full bg-[#0b0f19] border border-slate-800 rounded-xl p-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-lock"></i> Sellar Auditoría al Repositorio
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Bitácora de Auditorías (Columnas Derecha - 2 Spans) -->
+                <div
+                    class="lg:col-span-2 bg-[#111827] border border-slate-800/80 rounded-2xl p-5 shadow-lg flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-server text-emerald-400"></i> Bitácora de Seguridad del Servidor
+                        </h3>
+                        <button onclick="clearAudits()"
+                            class="text-xs text-red-400 hover:text-red-300 bg-red-950/30 border border-red-900/50 px-3 py-1 rounded-lg transition-all">
+                            <i class="fa-solid fa-trash"></i> Vaciar Bitácora
+                        </button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto max-h-[420px] space-y-3 pr-1" id="audits-container">
+                        <div id="empty-state" class="text-center py-16 text-slate-500">
+                            <i class="fa-solid fa-shield text-4xl mb-3 text-slate-600"></i>
+                            <p class="text-sm">No hay registros de auditoría almacenados en este entorno.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Lógica de Sincronización con el Backend -->
+    <script>
+        document.addEventListener('DOMContentLoaded', fetchAudits);
+
+        const form = document.getElementById('audit-form');
+        const severitySelect = document.getElementById('audit-severity');
+        const feeInput = document.getElementById('audit-fee');
+
+        severitySelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val === '404') feeInput.value = 150000;
+            if (val === '501') feeInput.value = 250000;
+            if (val === 'MemoryLeak') feeInput.value = 300000;
+            if (val === 'Injection') feeInput.value = 500000;
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const project = document.getElementById('project-name').value;
+            const severity = severitySelect.value;
+            const desc = document.getElementById('audit-desc').value;
+            const fee = feeInput.value;
+
+            try {
+                const res = await fetch('/api/audits', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project, severity, desc, fee })
+                });
+                if (res.ok) {
+                    form.reset();
+                    feeInput.value = 200000;
+                    fetchAudits();
+                }
+            } catch (err) {
+                alert('Error al conectar con el servidor central.');
+            }
+        });
+
+        async function fetchAudits() {
+            try {
+                const res = await fetch('/api/audits');
+                const audits = await res.json();
+                renderAudits(audits);
+            } catch (err) {
+                console.error("No se pudieron cargar los datos del servidor.");
+            }
+        }
+
+        async function clearAudits() {
+            if (confirm('¿Estás seguro de vaciar la bitácora del servidor?')) {
+                await fetch('/api/audits', { method: 'DELETE' });
+                fetchAudits();
+            }
+        }
+
+        function renderAudits(audits) {
+            const container = document.getElementById('audits-container');
+            container.innerHTML = '';
+
+            let totalRev = 0;
+
+            if (audits.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 text-slate-500">
+                        <i class="fa-solid fa-shield text-4xl mb-3 text-slate-600"></i>
+                        <p class="text-sm">No hay registros de auditoría almacenados en este entorno.</p>
+                    </div>`;
+                document.getElementById('metric-total').innerText = '0';
+                document.getElementById('metric-revenue').innerText = '$0';
+                return;
+            }
+
+            audits.forEach(a => {
+                totalRev += a.fee;
+
+                const badgeColor = a.severity === 'Injection' ? 'bg-red-950/60 text-red-400 border-red-900/50' :
+                    a.severity === 'MemoryLeak' ? 'bg-amber-950/60 text-amber-400 border-amber-900/50' :
+                        'bg-indigo-950/60 text-indigo-400 border-indigo-900/50';
+
+                const card = document.createElement('div');
+                card.className = "p-4 rounded-xl border border-slate-800/80 bg-[#0b0f19] flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-slate-200 text-sm">${escapeHtml(a.project)}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded border ${badgeColor}">Falla: ${a.severity}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded border bg-emerald-950/50 text-emerald-400 border-emerald-900/50"><i class="fa-solid fa-check"></i> Blindado</span>
+                        </div>
+                        <p class="text-xs text-slate-400"><strong>Solución:</strong> ${escapeHtml(a.desc)}</p>
+                        <span class="text-xs text-indigo-400 font-semibold">Facturación: $${a.fee.toLocaleString()} COP</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('metric-total').innerText = audits.length;
+            document.getElementById('metric-revenue').innerText = '$' + totalRev.toLocaleString();
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+
+</html>

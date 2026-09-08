@@ -1,0 +1,10 @@
+{
+  "description": "Facilitates professional project management with dedicated spaces for evaluators, solvers, and auditors to collaborate and track project delivery.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

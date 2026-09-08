@@ -1,0 +1,112 @@
+@import '@fontsource/dm-sans/300.css';
+@import '@fontsource/dm-sans/400.css';
+@import '@fontsource/dm-sans/500.css';
+@import '@fontsource/dm-sans/600.css';
+@import '@fontsource/dm-sans/700.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/600.css';
+@import 'tailwindcss';
+
+@theme {
+  /* Brand palette */
+  --color-navy-950: #05090f;
+  --color-navy-900: #090e18;
+  --color-navy-850: #0d1420;
+  --color-navy-800: #111d2e;
+  --color-navy-750: #16253a;
+  --color-navy-700: #1c2f47;
+  --color-navy-600: #243a59;
+  --color-navy-500: #2e4a70;
+
+  --color-glass-border: rgba(255,255,255,0.07);
+  --color-glass-hover:  rgba(255,255,255,0.04);
+
+  --color-accent-blue:   #3b82f6;
+  --color-accent-indigo: #6366f1;
+  --color-accent-cyan:   #22d3ee;
+
+  --color-ok:     #10b981;
+  --color-warn:   #f59e0b;
+  --color-danger: #ef4444;
+  --color-info:   #60a5fa;
+  --color-purple: #a78bfa;
+
+  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+}
+
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background: var(--color-navy-950);
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbars ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1c2f47 transparent;
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #243a59; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #2e4a70; }
+
+/* ── Glass card ── */
+.glass {
+  background: rgba(13, 20, 32, 0.82);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-hover:hover {
+  background: rgba(22, 37, 58, 0.70);
+}
+
+/* ── Animated gradient badge strip ── */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer-bar {
+  background: linear-gradient(90deg, #3b82f6 0%, #6366f1 40%, #22d3ee 60%, #3b82f6 100%);
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+/* ── Pulse dot ── */
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.8; }
+  70%  { transform: scale(2); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+/* ── Micro transitions ── */
+.tr-fast { transition: all 0.12s ease; }
+.tr-mid  { transition: all 0.2s ease; }
+
+/* ── Table row hover ── */
+.trow:hover { background: rgba(59, 130, 246, 0.04); }
+.trow:hover td { color: #f1f5f9; }

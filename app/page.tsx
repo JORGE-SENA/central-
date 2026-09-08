@@ -1,281 +1,204 @@
-\"use client\";
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
-  Cpu,
-  Zap,
-  Terminal,
-  Bot,
-  ShieldAlert,
-  LayoutGrid,
-  Layers,
-  Code2,
-  Settings,
   Search,
-  Power,
+  Crown,
   ChevronRight,
-  MessageSquareText,
+  LayoutGrid,
+  Box,
+  Users,
+  BarChart3,
+  Bell,
+  MessageSquare,
+  Settings,
+  Layers,
+  FileText,
+  Table,
   Activity,
-  Fingerprint,
-  Gauge,
-  Command
+  ChevronDown
 } from 'lucide-react';
 
-interface LogEntry {
-  timestamp: string;
-  message: string;
-}
-
-interface Message {
-  role: 'bot' | 'user';
-  text: string;
-}
-
-interface MetricProps {
-  label: string;
-  value: string;
-  icon: React.ElementType;
-  color: string;
-  bg: string;
-}
-
-interface ToolProps {
-  label: string;
-  icon: React.ElementType;
-  onClick: () => void;
-}
-
-export default function AnalizisMasterEngine() {
-  const [isEngineOn, setIsEngineOn] = useState(false);
-  const [activeView, setActiveTab] = useState('Dashboard');
-  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
-  const [aiInput, setAiInput] = useState(\"\");
-  const [aiMessages, setAiMessages] = useState<Message[]>([
-    { role: 'bot', text: 'Bienvenido, Jorge. El núcleo oscuro está activo. ¿Qué vamos a optimizar hoy?' }
-  ]);
-  const [load, setLoad] = useState(0);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    setTerminalLogs([
-      \"--- NÚCLEO ANALIZIS DARK ELITE CARGADO ---\",
-      \"Protocolos de seguridad cuántica activos.\",
-      \"Esperando ignición del sistema...\"
-    ]);
-  }, []);
-
-  const log = (msg: string) => {
-    const time = new Date().toLocaleTimeString();
-    setTerminalLogs(prev => [...prev.slice(-10), \[\] \\]);
-  };
-
-  const toggleEngine = () => {
-    setIsEngineOn(!isEngineOn);
-    if (!isEngineOn) {
-      log(\"MOTOR ELITE: IGNICIÓN\".toUpperCase());
-      setLoad(42.8);
-    } else {
-      log(\"Sistema en hibernación\");
-      setLoad(0);
-    }
-  };
-
-  const handleAiSend = () => {
-    if (!aiInput) return;
-    const userMsg = aiInput;
-    setAiMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-    setAiInput(\"\");
-    log(\IA CMD: \\);
-
-    setTimeout(() => {
-      setAiMessages(prev => [...prev, { role: 'bot', text: \Procesando \ en el clúster oscuro. Optimizando arquitectura y renderizado.\ }]);
-    }, 1000);
-  };
-
-  if (!mounted) return <div className=\"min-h-screen bg-[#0A0A0B]\" />;
-
+export default function AnalizisSinglePageDashboard() {
   return (
-    <div className=\"min-h-screen bg-[#0A0A0B] text-[#E0E0E6] flex font-sans selection:bg-[#5E5CE6]/30\">
+    <div className="h-screen w-screen bg-[#0A0A0B] text-[#E0E0E6] flex font-sans overflow-hidden selection:bg-[#5E5CE6]/30">
 
-      <aside className=\"w-20 lg:w-72 bg-[#0F0F12] border-r border-white/10 flex flex-col p-6 h-screen sticky top-0 transition-all duration-500 z-50\">
-        <div className=\"flex items-center gap-4 mb-16 lg:px-2\">
-          <div className=\"w-12 h-12 bg-[#5E5CE6] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(94,92,230,0.6)]\">
-            <Cpu size={24} className=\"text-white\" />
+      {/* SIDEBAR FIJO */}
+      <aside className="w-64 bg-[#0F0F12] border-r border-white/10 flex flex-col p-4 h-full shrink-0 select-none">
+
+        {/* LOGO */}
+        <div className="flex items-center gap-3 mb-5 px-1">
+          <div className="w-8 h-8 bg-[#1E1E2A] rounded-xl border border-white/10 flex items-center justify-center font-black text-[#5E5CE6] text-xs italic">
+            CP
           </div>
-          <div className=\"hidden lg:block\">
-            <h1 className=\"font-black uppercase tracking-tighter text-xl italic leading-none text-white\">ANALIZIS</h1>
-            <p className=\"text-[8px] font-black text-blue-400 uppercase tracking-[0.4em] mt-1\">Elite Studio</p>
+          <div>
+            <h1 className="font-black uppercase tracking-tight text-xs text-white italic">CORE PANEL</h1>
+            <p className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Analizis Studio</p>
           </div>
         </div>
 
-        <nav className=\"flex-1 space-y-2\">
-          {['Dashboard', 'SaaS Apps', 'Blueprints', 'Security'].map((item) => (
-            <button
-              key={item}
-              onClick={() => { setActiveTab(item); log(\Vista: \\); }}
-              className={\w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-black uppercase italic text-[10px] tracking-widest transition-all \\}
-            >
-              <LayoutGrid size={16} />
-              <span className=\"hidden lg:block\">\</span>
+        {/* NAVEGACIÓN */}
+        <nav className="flex-1 space-y-3 overflow-y-auto custom-scrollbar pr-1">
+          <div>
+            <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] px-2 mb-1">Menú</p>
+            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl font-bold text-[11px] uppercase italic bg-[#5E5CE6] text-white shadow-md">
+              <LayoutGrid size={14} />
+              <span>Dashboard</span>
             </button>
-          ))}
+          </div>
+
+          <div>
+            <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] px-2 mb-1">Admin Tools</p>
+            {['Products', 'Clients', 'Analytics'].map((item, idx) => (
+              <div key={idx} className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl font-bold text-[11px] uppercase italic text-white/40 hover:text-white transition-colors cursor-pointer">
+                <span>{item}</span>
+                <ChevronRight size={12} className="opacity-30" />
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] px-2 mb-1">Insights</p>
+            {['Notification', 'Message', 'Settings'].map((item, idx) => (
+              <div key={idx} className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl font-bold text-[11px] uppercase italic text-white/40 hover:text-white transition-colors cursor-pointer">
+                <span>{item}</span>
+                <ChevronRight size={12} className="opacity-30" />
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] px-2 mb-1">Elements</p>
+            {['Components', 'Forms', 'Tables'].map((item, idx) => (
+              <div key={idx} className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl font-bold text-[11px] uppercase italic text-white/40 hover:text-white transition-colors cursor-pointer">
+                <span>{item}</span>
+                <ChevronRight size={12} className="opacity-30" />
+              </div>
+            ))}
+          </div>
         </nav>
 
-        <div className=\"mt-auto\">
-          <button
-            onClick={toggleEngine}
-            className={\w-full p-6 rounded-[2.5rem] flex flex-col items-center gap-3 transition-all duration-500 border-2 \\}
-          >
-            <Power size={24} className={\} />
-            <span className=\"hidden lg:block text-[9px] font-black uppercase italic text-white/50\">
-              \
-            </span>
+        {/* TARJETA PRO */}
+        <div className="bg-[#13131A] p-3 rounded-2xl border border-white/10 mt-2 shrink-0">
+          <p className="text-[9px] font-black uppercase italic mb-0.5 text-white">Let's Upgrade to Pro</p>
+          <p className="text-[8px] text-white/40 mb-2 leading-tight">Lorem ipsum dolor sit amet.</p>
+          <button className="w-full bg-[#5E5CE6] hover:bg-blue-600 text-white rounded-xl py-2 font-black uppercase italic text-[9px] transition-all shadow-md flex items-center justify-center gap-1.5">
+            <Crown size={12} /> Upgrade Now
           </button>
         </div>
       </aside>
 
-      <main className=\"flex-1 flex flex-col h-screen overflow-hidden\">
+      {/* CONTENEDOR PRINCIPAL */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden p-6 bg-[#0A0A0B]">
 
-        <header className=\"h-20 bg-[#0F0F12]/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-10 shrink-0 sticky top-0 z-40\">
-          <div className=\"relative w-96\">
-            <Search className=\"absolute left-4 top-1/2 -translate-y-1/2 text-white/20\" size={18} />
+        {/* HEADER */}
+        <header className="flex justify-between items-center mb-5 shrink-0">
+          <div className="relative w-80">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={15} />
             <input
-              type=\"text\"
-              placeholder=\"Buscar en el núcleo oscuro...\"
-              className=\"w-full bg-white/5 border border-white/10 focus:bg-white/10 focus:border-[#5E5CE6] rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-bold text-xs text-white placeholder:text-white/20\"
+              type="text"
+              placeholder="Hello Olivia, Welcome back!"
+              className="w-full bg-[#0F0F12] border border-white/10 rounded-xl py-2 pl-10 pr-4 outline-none font-bold text-xs text-white placeholder:text-white/40 shadow-inner"
             />
           </div>
 
-          <div className=\"flex items-center gap-6\">
-            <div className=\"flex flex-col items-end\">
-               <span className=\"text-[10px] font-black uppercase tracking-widest text-blue-400 italic\">System Status</span>
-               <span className={\	ext-xs font-black \\}>
-                 \
-               </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[9px] font-black uppercase text-white/50 bg-[#0F0F12] border border-white/10 px-2.5 py-1.5 rounded-lg">EN</span>
+            <div className="w-9 h-9 rounded-xl bg-[#0F0F12] border border-white/10 flex items-center justify-center text-white/60">
+              <Activity size={14} />
             </div>
-            <div className=\"w-10 h-10 bg-[#5E5CE6] text-white rounded-full flex items-center justify-center font-black italic shadow-lg shadow-[#5E5CE6]/20\">A</div>
+            <div className="w-9 h-9 rounded-xl bg-[#0F0F12] border border-white/10 flex items-center justify-center text-white/60">
+              <Bell size={14} />
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-[#5E5CE6] text-white font-black flex items-center justify-center italic shadow-md text-xs">
+              A
+            </div>
           </div>
         </header>
 
-        <div className=\"flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar\">
+        {/* GRID PRINCIPAL DE UNA SOLA VISTA */}
+        <div className="flex-1 grid grid-cols-12 gap-4 overflow-hidden">
 
-          <div className=\"grid grid-cols-1 md:grid-cols-4 gap-6\">
-            <MetricCard label=\"Carga Core\" value={\\%\} icon={Gauge} color=\"text-blue-400\" bg=\"bg-blue-500/10\" />
-            <MetricCard label=\"Uptime\" value=\"99.9%\" icon={Zap} color=\"text-yellow-400\" bg=\"bg-yellow-500/10\" />
-            <MetricCard label=\"SaaS Nodes\" value=\"4\" icon={Activity} color=\"text-purple-400\" bg=\"bg-purple-500/10\" />
-            <MetricCard label=\"Security\" value=\"High\" icon={Fingerprint} color=\"text-green-400\" bg=\"bg-green-500/10\" />
+          {/* COLUMNA IZQUIERDA (MÉTRICAS + GRÁFICA) */}
+          <div className="col-span-9 flex flex-col gap-4 h-full overflow-hidden">
+
+            {/* 4 TARJETAS EN UNA SOLA FILA HORIZONTAL PERFECTA */}
+            <div className="grid grid-cols-4 gap-3 shrink-0">
+              {[
+                { title: 'TOTAL REVENUE', val: '$52,000', change: '+8.33%', pos: true },
+                { title: 'CONVERSION RATE', val: '3.5%', change: '+16.67%', pos: true },
+                { title: 'RENEWALS', val: '1,200', change: '-4.35%', pos: false },
+                { title: 'SUBSCRIBERS', val: '650', change: '+12%', pos: true },
+              ].map((card, i) => (
+                <div key={i} className="bg-[#0F0F12] p-3.5 rounded-2xl border border-white/10 shadow-md flex flex-col justify-between">
+                  <p className="text-[8px] font-black text-white/40 uppercase tracking-widest truncate">{card.title}</p>
+                  <div className="flex items-baseline justify-between mt-2">
+                    <h3 className="text-base font-black italic text-white">{card.val}</h3>
+                    <span className={`text-[8px] font-bold ${card.pos ? 'text-green-400' : 'text-red-400'}`}>{card.change}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* GRÁFICA DE ORDEN INFERIOR */}
+            <div className="flex-1 bg-[#0F0F12] rounded-2xl border border-white/10 p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
+              <div className="flex items-center justify-between z-10">
+                <h3 className="font-black uppercase italic tracking-tighter text-sm text-white">Order</h3>
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1 rounded-lg text-[9px] font-bold text-white/70">
+                  <span>Current Week</span>
+                  <ChevronDown size={12} className="opacity-50" />
+                </div>
+              </div>
+
+              <div className="absolute inset-x-0 bottom-6 h-24 bg-gradient-to-t from-[#5E5CE6]/15 to-transparent flex items-end">
+                <div className="absolute top-2 left-1/3 bg-[#1E1E2A] border border-white/10 px-2 py-0.5 rounded-lg text-[9px] font-black text-white shadow-xl flex items-center gap-1">
+                  <div className="w-1 h-1 rounded-full bg-white animate-pulse"></div>
+                  $27.256.390
+                </div>
+                <div className="w-full border-t border-[#5E5CE6]"></div>
+              </div>
+
+              <div className="flex justify-between text-[8px] font-black text-white/30 uppercase tracking-widest z-10 pt-2 border-t border-white/5">
+                <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span>
+              </div>
+            </div>
+
           </div>
 
-          <div className=\"grid grid-cols-1 lg:grid-cols-12 gap-8\">
+          {/* COLUMNA DERECHA (EQUIPO) */}
+          <div className="col-span-3 bg-[#0F0F12] rounded-2xl border border-white/10 p-4 shadow-md flex flex-col h-full overflow-hidden">
+            <div className="flex items-center justify-between mb-3 shrink-0">
+              <h3 className="font-black uppercase italic tracking-tighter text-xs text-white">Team Member</h3>
+              <span className="text-[8px] font-bold text-white/50 bg-white/5 px-2 py-1 rounded-lg">Recent</span>
+            </div>
 
-            <div className=\"lg:col-span-8 bg-[#111114] rounded-[3.5rem] border border-white/10 shadow-2xl overflow-hidden flex flex-col relative h-[550px] backdrop-blur-xl\">
-               <div className=\"p-8 border-b border-white/10 flex items-center justify-between bg-white/5\">
-                  <div className=\"flex items-center gap-4\">
-                    <div className=\"w-12 h-12 bg-[#5E5CE6] text-white rounded-2xl flex items-center justify-center shadow-lg\">
-                      <Bot size={24} />
+            <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar pr-1">
+              {[1, 2, 3, 4, 5].map((_, i) => (
+                <div key={i} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-[#1E1E2A] border border-white/10 flex items-center justify-center font-black text-[10px] text-blue-400 italic">
+                      RP
                     </div>
                     <div>
-                      <h3 className=\"text-xl font-black uppercase italic tracking-tighter text-white\">Analizis AI Elite</h3>
-                      <p className=\"text-[9px] font-bold text-white/40 uppercase tracking-widest\">Neural Engine Local</p>
+                      <p className="text-[11px] font-black text-white italic leading-tight">Rissa Pearson</p>
+                      <p className="text-[7px] text-white/40 uppercase">UI Designer</p>
                     </div>
                   </div>
-                  <div className=\"flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10 text-[8px] font-black text-green-400 uppercase italic\">
-                    <div className=\"w-1.5 h-1.5 bg-green-400 rounded-full animate-ping\"></div>
-                    Sincronizado
-                  </div>
-               </div>
-
-               <div className=\"flex-1 p-8 flex flex-col bg-[#111114]\">
-                  <div className=\"space-y-6 flex-1 overflow-y-auto pr-4 custom-scrollbar\">
-                    {aiMessages.map((m, i) => (
-                      <div key={i} className={\lex \\}>
-                        <div className={\p-6 rounded-[2rem] max-w-[80%] text-xs font-bold leading-relaxed italic border \\}>
-                          \
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className=\"mt-8 flex gap-4\">
-                    <input
-                      type=\"text\"
-                      placeholder=\"Ingresa comando de arquitectura...\"
-                      className=\"flex-1 bg-white/5 border border-white/10 rounded-2xl p-5 outline-none focus:border-[#5E5CE6] transition-all font-bold text-sm italic text-white placeholder:text-white/20\"
-                      value={aiInput}
-                      onChange={(e) => setAiInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAiSend()}
-                    />
-                    <button
-                      onClick={handleAiSend}
-                      className=\"w-16 bg-[#5E5CE6] text-white rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all shadow-xl active:scale-95\"
-                    >
-                      <MessageSquareText size={20} />
-                    </button>
-                  </div>
-               </div>
+                  <span className="text-[8px] font-bold text-white/30">2m</span>
+                </div>
+              ))}
             </div>
 
-            <div className=\"lg:col-span-4 space-y-6 flex flex-col\">
-               <div className=\"bg-[#111114] rounded-[3rem] border border-white/10 p-8 shadow-xl flex-1 backdrop-blur-xl\">
-                  <h3 className=\"font-black uppercase italic tracking-tighter text-sm mb-6 flex items-center gap-2 text-white\">
-                    <Command size={16} className=\"text-[#5E5CE6]\" /> Elite Toolbox
-                  </h3>
-                  <div className=\"space-y-3\">
-                    <ToolAction label=\"Purga Sistema\" icon={Zap} onClick={() => log(\"Ejecutando purga_nucleo.sh...\")} />
-                    <ToolAction label=\"Escaneo Seguridad\" icon={ShieldAlert} onClick={() => log(\"Iniciando auditoria_cuantica.py...\")} />
-                    <ToolAction label=\"Forge Engine\" icon={Code2} onClick={() => log(\"Lanzando fabricacion_saas.exe...\")} />
-                  </div>
-               </div>
-
-               <div className=\"h-64 bg-black rounded-[2.5rem] p-6 border border-white/10 shadow-2xl relative overflow-hidden font-mono\">
-                  <div className=\"flex items-center justify-between mb-4 pb-4 border-b border-white/5\">
-                    <span className=\"text-[8px] font-black text-white/30 uppercase tracking-[0.3em]\">System Logs</span>
-                    <div className=\"flex gap-1\">
-                      <div className=\"w-1.5 h-1.5 rounded-full bg-red-500/20\"></div>
-                      <div className=\"w-1.5 h-1.5 rounded-full bg-green-500/20\"></div>
-                    </div>
-                  </div>
-                  <div className=\"space-y-1 h-[140px] overflow-y-auto custom-scrollbar-dark\">
-                    {terminalLogs.map((l, i) => (
-                      <p key={i} className=\"text-[9px] text-white/40 font-medium\">
-                        <span className=\"text-[#5E5CE6] mr-2\">➜</span> {l}
-                      </p>
-                    ))}
-                    <div className=\"w-1.5 h-3 bg-white/20 animate-pulse inline-block ml-1\"></div>
-                  </div>
-               </div>
+            <div className="pt-2 border-t border-white/5 text-center shrink-0">
+              <span className="text-[9px] font-black uppercase tracking-widest text-[#5E5CE6] cursor-pointer hover:underline">
+                See Details →
+              </span>
             </div>
-
           </div>
+
         </div>
 
       </main>
     </div>
-  );
-}
-
-function MetricCard({ label, value, icon: Icon, color, bg }: MetricProps) {
-  return (
-    <div className=\"bg-[#111114] p-8 rounded-[2.5rem] border border-white/10 shadow-sm hover:shadow-[0_0_30px_-10px_rgba(94,92,230,0.3)] transition-all duration-500 group relative overflow-hidden backdrop-blur-xl\">
-       <div className={\bsolute top-0 right-0 w-24 h-24 \ rounded-bl-[4rem] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-all duration-700\}></div>
-       <div className={\\ \ w-12 h-12 rounded-2xl flex items-center justify-center mb-6 relative z-10 shadow-inner\}>
-          <Icon size={20} />
-       </div>
-       <p className=\"text-[9px] font-black text-white/30 uppercase tracking-widest mb-1 relative z-10\">\</p>
-       <p className=\"text-3xl font-black italic text-white leading-none relative z-10\">\</p>
-    </div>
-  );
-}
-
-function ToolAction({ label, icon: Icon, onClick }: ToolProps) {
-  return (
-    <button onClick={onClick} className=\"w-full flex items-center justify-between p-5 bg-white/5 rounded-2xl border border-transparent hover:border-[#5E5CE6]/50 hover:bg-[#5E5CE6]/10 transition-all group\">
-      <div className=\"flex items-center gap-3\">
-        <Icon size={16} className=\"text-white/30 group-hover:text-[#5E5CE6]\" />
-        <span className=\"text-[10px] font-black uppercase italic text-white/50 group-hover:text-white\">\</span>
-      </div>
-      <ChevronRight size={12} className=\"text-white/20 group-hover:translate-x-1 transition-transform\" />
-    </button>
   );
 }

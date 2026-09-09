@@ -148,8 +148,7 @@ export default function AnalizisCorePanel() {
                         </td>
                       </tr>
                     )) : (
-                      <tr><td colSpan="5" className="p-10 text-center text-white/30 italic">No se encontraron resultados.</td></tr>
-                    )}
+                        <tr><td colSpan={5} className="p-10 text-center text-white/30 italic">No se encontraron resultados.</td></tr>                    )}
                   </tbody>
                 </table>
               </div>

@@ -1,10 +1,12 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import {
-  projects as initialProjects, evaluators as initialEvaluators, issues as initialIssues, 
+  projects as initialProjects, evaluators as initialEvaluators, issues as initialIssues,
   audits as initialAudits, deliveries as initialDeliveries,
   securityEvents as initialSecurityEvents, userRoles as initialUserRoles,
   type Project, type Evaluator, type Issue, type Audit,
   type Delivery, type SecurityEvent, type UserRole,
+  Status,
+  Priority,
 } from "./data";
 import { Modal } from "./components/Modal";
 
@@ -14,36 +16,36 @@ type View = "dashboard" | "projects" | "evaluators" | "solvers" | "auditors" | "
 /* ─── Palette helpers ─── */
 const STATUS_CLS: Record<string, string> = {
   "En progreso": "text-blue-400 bg-blue-500/10 border-blue-500/25",
-  "Revisión":    "text-amber-400 bg-amber-500/10 border-amber-500/25",
-  "Completado":  "text-emerald-400 bg-emerald-500/10 border-emerald-500/25",
-  "Pendiente":   "text-slate-400 bg-slate-500/10 border-slate-500/25",
-  "Bloqueado":   "text-red-400 bg-red-500/10 border-red-500/25",
-  "Aprobado":    "text-emerald-400 bg-emerald-500/10 border-emerald-500/25",
-  "Observado":   "text-amber-400 bg-amber-500/10 border-amber-500/25",
-  "Rechazado":   "text-red-400 bg-red-500/10 border-red-500/25",
-  "Entregado":   "text-cyan-400 bg-cyan-500/10 border-cyan-500/25",
-  "Cerrado":     "text-slate-500 bg-slate-600/10 border-slate-600/25",
+  "Revisión": "text-amber-400 bg-amber-500/10 border-amber-500/25",
+  "Completado": "text-emerald-400 bg-emerald-500/10 border-emerald-500/25",
+  "Pendiente": "text-slate-400 bg-slate-500/10 border-slate-500/25",
+  "Bloqueado": "text-red-400 bg-red-500/10 border-red-500/25",
+  "Aprobado": "text-emerald-400 bg-emerald-500/10 border-emerald-500/25",
+  "Observado": "text-amber-400 bg-amber-500/10 border-amber-500/25",
+  "Rechazado": "text-red-400 bg-red-500/10 border-red-500/25",
+  "Entregado": "text-cyan-400 bg-cyan-500/10 border-cyan-500/25",
+  "Cerrado": "text-slate-500 bg-slate-600/10 border-slate-600/25",
 };
 
 const PRIORITY_CLS: Record<string, string> = {
   "Crítica": "text-red-400",
-  "Alta":    "text-orange-400",
-  "Media":   "text-amber-400",
-  "Baja":    "text-slate-400",
+  "Alta": "text-orange-400",
+  "Media": "text-amber-400",
+  "Baja": "text-slate-400",
 };
 
 const SEV_CLS: Record<string, string> = {
   "Crítico": "text-red-400 bg-red-500/10 border-red-500/25",
-  "Alerta":  "text-orange-400 bg-orange-500/10 border-orange-500/25",
-  "Aviso":   "text-amber-400 bg-amber-500/10 border-amber-500/25",
-  "Info":    "text-slate-400 bg-slate-500/10 border-slate-500/25",
+  "Alerta": "text-orange-400 bg-orange-500/10 border-orange-500/25",
+  "Aviso": "text-amber-400 bg-amber-500/10 border-amber-500/25",
+  "Info": "text-slate-400 bg-slate-500/10 border-slate-500/25",
 };
 
 const RESULT_CLS: Record<string, string> = {
-  "Exitoso":  "text-emerald-400",
-  "Fallido":  "text-red-400",
+  "Exitoso": "text-emerald-400",
+  "Fallido": "text-red-400",
   "Denegado": "text-orange-400",
-  "Aviso":    "text-amber-400",
+  "Aviso": "text-amber-400",
 };
 
 /* ─── Primitives ─── */
@@ -56,7 +58,7 @@ function Badge({ label, cls }: { label: string; cls: string }) {
 }
 
 function PriorityBadge({ p }: { p: string }) {
-  const dots: Record<string, string> = { "Crítica":"bg-red-500", "Alta":"bg-orange-400", "Media":"bg-amber-400", "Baja":"bg-slate-500" };
+  const dots: Record<string, string> = { "Crítica": "bg-red-500", "Alta": "bg-orange-400", "Media": "bg-amber-400", "Baja": "bg-slate-500" };
   return (
     <span className={`inline-flex items-center gap-1.5 text-[11px] font-mono ${PRIORITY_CLS[p] ?? "text-slate-400"}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${dots[p] ?? "bg-slate-500"}`} />
@@ -197,31 +199,31 @@ function KPI({ label, value, sub, color, icon, trend }: { label: string; value: 
 }
 
 /* ══════════════════════════════════════════
-   VIEWS
+  VIEWS
 ══════════════════════════════════════════ */
 
 /* ─── Dashboard ─── */
-function DashboardView({ 
-  projects, issues, deliveries, securityEvents, evaluators, audits, userRoles 
-}: { 
-  projects: Project[], issues: Issue[], deliveries: Delivery[], 
-  securityEvents: SecurityEvent[], evaluators: Evaluator[], 
-  audits: Audit[], userRoles: UserRole[] 
+function DashboardView({
+  projects, issues, deliveries, securityEvents, evaluators, audits, userRoles
+}: {
+  projects: Project[], issues: Issue[], deliveries: Delivery[],
+  securityEvents: SecurityEvent[], evaluators: Evaluator[],
+  audits: Audit[], userRoles: UserRole[]
 }) {
-  const active = projects.filter(p => !["Completado","Cerrado"].includes(p.status)).length;
+  const active = projects.filter(p => !["Completado", "Cerrado"].includes(p.status)).length;
   const critical = issues.filter(i => i.priority === "Crítica" && i.status !== "Completado").length;
   const overdue = deliveries.filter(d => d.status === "Pendiente" && d.deadline < "2026-09-08").length;
-  const secAlerts = securityEvents.filter(e => ["Crítico","Alerta"].includes(e.severity)).length;
+  const secAlerts = securityEvents.filter(e => ["Crítico", "Alerta"].includes(e.severity)).length;
 
   const recentEvents = securityEvents.slice(0, 8);
-  const topIssues = issues.filter(i => ["Crítica","Alta"].includes(i.priority) && i.status !== "Completado").slice(0, 6);
+  const topIssues = issues.filter(i => ["Crítica", "Alta"].includes(i.priority) && i.status !== "Completado").slice(0, 6);
 
   return (
     <div className="space-y-5">
       {/* KPI row - Responsive grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <KPI label="Proyectos Activos" value={String(active)} sub={`${projects.length} en portafolio`} color="text-blue-400" icon="◈" trend="+2 este mes" />
-        <KPI label="Incidencias Críticas" value={String(critical)} sub={`${issues.filter(i=>i.status!=="Completado").length} abiertas total`} color="text-red-400" icon="⚑" />
+        <KPI label="Incidencias Críticas" value={String(critical)} sub={`${issues.filter(i => i.status !== "Completado").length} abiertas total`} color="text-red-400" icon="⚑" />
         <KPI label="Entregables Vencidos" value={String(overdue)} sub="Requieren atención inmediata" color="text-amber-400" icon="◫" />
         <KPI label="Alertas Seguridad" value={String(secAlerts)} sub="Últimas 72 horas" color="text-purple-400" icon="⊕" />
       </div>
@@ -293,12 +295,12 @@ function DashboardView({
         {/* Quick stats grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 content-start">
           {[
-            { l:"Presupuesto total", v:"$7.5M+", s:"24 contratos activos" },
-            { l:"Evaluadores activos", v:`${evaluators.filter(e=>e.status==="En progreso").length}`, s:`${evaluators.length} asignados total` },
-            { l:"Auditorías aprobadas", v:`${audits.filter(a=>a.status==="Aprobado").length}/${audits.length}`, s:"Conformidad del portafolio" },
-            { l:"Entregables completados", v:`${deliveries.filter(d=>d.status==="Entregado").length}/${deliveries.length}`, s:"Hitos del portafolio" },
-            { l:"Usuarios activos", v:`${userRoles.filter(u=>u.status==="Activo").length}`, s:`${userRoles.filter(u=>u.mfa).length} con MFA habilitado` },
-            { l:"Regiones cubiertas", v:"12", s:"Nacional + departamental" },
+            { l: "Presupuesto total", v: "$7.5M+", s: "24 contratos activos" },
+            { l: "Evaluadores activos", v: `${evaluators.filter(e => e.status === "En progreso").length}`, s: `${evaluators.length} asignados total` },
+            { l: "Auditorías aprobadas", v: `${audits.filter(a => a.status === "Aprobado").length}/${audits.length}`, s: "Conformidad del portafolio" },
+            { l: "Entregables completados", v: `${deliveries.filter(d => d.status === "Entregado").length}/${deliveries.length}`, s: "Hitos del portafolio" },
+            { l: "Usuarios activos", v: `${userRoles.filter(u => u.status === "Activo").length}`, s: `${userRoles.filter(u => u.mfa).length} con MFA habilitado` },
+            { l: "Regiones cubiertas", v: "12", s: "Nacional + departamental" },
           ].map(s => (
             <div key={s.l} className="glass rounded-lg px-3 py-3 hover:border-[rgba(255,255,255,0.1)] transition-all">
               <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest mb-1">{s.l}</div>
@@ -389,7 +391,7 @@ function ProjectsView({ projects, setProjects }: { projects: Project[]; setProje
                 <Select value={priorityF} onChange={setPriorityF} options={priorities} />
               </div>
             } />
-            <button 
+            <button
               onClick={openCreate}
               className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-[11px] font-mono transition-all flex items-center gap-2 border border-blue-400/30"
             >
@@ -433,9 +435,9 @@ function ProjectsView({ projects, setProjects }: { projects: Project[]; setProje
                   <Td center>
                     <div className="flex items-center gap-2 justify-center">
                       <button onClick={() => openEdit(p)} className="text-slate-600 hover:text-blue-400 transition-colors text-xs font-mono" title="Editar">✎</button>
-                      <button 
-                        onClick={() => { if(confirm(`¿Eliminar ${p.id}?`)) setProjects(prev => prev.filter(x => x.id !== p.id)) }} 
-                        className="text-slate-600 hover:text-red-400 transition-colors text-xs font-mono" 
+                      <button
+                        onClick={() => { if (confirm(`¿Eliminar ${p.id}?`)) setProjects(prev => prev.filter(x => x.id !== p.id)) }}
+                        className="text-slate-600 hover:text-red-400 transition-colors text-xs font-mono"
                         title="Eliminar"
                       >
                         🗑
@@ -450,34 +452,34 @@ function ProjectsView({ projects, setProjects }: { projects: Project[]; setProje
         <Pagination {...pg} />
       </Panel>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title={editingProject ? "Editar Proyecto" : "Nuevo Proyecto"}
       >
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Nombre</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.name || ""} 
-              onChange={e => setForm({...form, name: e.target.value})} 
+              value={form.name || ""}
+              onChange={e => setForm({ ...form, name: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Cliente</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.client || ""} 
-              onChange={e => setForm({...form, client: e.target.value})} 
+              value={form.client || ""}
+              onChange={e => setForm({ ...form, client: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Estado</span>
-            <select 
+            <select
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.status || "Pendiente"} 
-              onChange={e => setForm({...form, status: e.target.value as Status})} 
+              value={form.status || "Pendiente"}
+              onChange={e => setForm({ ...form, status: e.target.value as Status})}
             >
               <option value="Pendiente">Pendiente</option>
               <option value="En progreso">En progreso</option>
@@ -488,11 +490,11 @@ function ProjectsView({ projects, setProjects }: { projects: Project[]; setProje
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Progreso (%)</span>
-            <input 
+            <input
               type="number"
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.progress || 0} 
-              onChange={e => setForm({...form, progress: Number(e.target.value)})} 
+              value={form.progress || 0}
+              onChange={e => setForm({ ...form, progress: Number(e.target.value) })}
             />
           </div>
         </div>
@@ -524,12 +526,12 @@ function EvaluatorsView({ evaluators, setEvaluators }: { evaluators: Evaluator[]
   const pg = usePagination(filtered, 10);
 
   const stats = [
-    { l:"Aprobadas", v: evaluators.filter(e=>e.status==="Aprobado").length, c:"text-emerald-400" },
-    { l:"En proceso", v: evaluators.filter(e=>e.status==="En progreso").length, c:"text-blue-400" },
-    { l:"En revisión", v: evaluators.filter(e=>e.status==="Revisión").length, c:"text-amber-400" },
-    { l:"Pendientes", v: evaluators.filter(e=>e.status==="Pendiente").length, c:"text-slate-400" },
-    { l:"Hallazgos críticos", v: evaluators.reduce((s,e)=>s+e.criticalFindings,0), c:"text-red-400" },
-    { l:"Puntaje promedio", v: Math.round(evaluators.filter(e=>e.score!==null).reduce((s,e)=>s+(e.score??0),0)/evaluators.filter(e=>e.score!==null).length) || "—", c:"text-blue-400" },
+    { l: "Aprobadas", v: evaluators.filter(e => e.status === "Aprobado").length, c: "text-emerald-400" },
+    { l: "En proceso", v: evaluators.filter(e => e.status === "En progreso").length, c: "text-blue-400" },
+    { l: "En revisión", v: evaluators.filter(e => e.status === "Revisión").length, c: "text-amber-400" },
+    { l: "Pendientes", v: evaluators.filter(e => e.status === "Pendiente").length, c: "text-slate-400" },
+    { l: "Hallazgos críticos", v: evaluators.reduce((s, e) => s + e.criticalFindings, 0), c: "text-red-400" },
+    { l: "Puntaje promedio", v: Math.round(evaluators.filter(e => e.score !== null).reduce((s, e) => s + (e.score ?? 0), 0) / evaluators.filter(e => e.score !== null).length) || "—", c: "text-blue-400" },
   ];
 
   const openCreate = () => {
@@ -575,7 +577,7 @@ function EvaluatorsView({ evaluators, setEvaluators }: { evaluators: Evaluator[]
             <SearchBar value={q} onChange={v => { setQ(v); pg.reset(); }} placeholder="Nombre, especialidad, proyecto…" extra={
               <Select value={statusF} onChange={setStatusF} options={statuses} />
             } />
-            <button 
+            <button
               onClick={openCreate}
               className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-[11px] font-mono transition-all flex items-center gap-2 border border-blue-400/30"
             >
@@ -618,8 +620,8 @@ function EvaluatorsView({ evaluators, setEvaluators }: { evaluators: Evaluator[]
                   <Td center>
                     <div className="flex items-center gap-2 justify-center">
                       <button onClick={() => openEdit(e)} className="text-slate-600 hover:text-blue-400 transition-colors text-xs font-mono">✎</button>
-                      <button 
-                        onClick={() => { if(confirm(`¿Eliminar evaluador ${e.id}?`)) setEvaluators(prev => prev.filter(x => x.id !== e.id)) }} 
+                      <button
+                        onClick={() => { if (confirm(`¿Eliminar evaluador ${e.id}?`)) setEvaluators(prev => prev.filter(x => x.id !== e.id)) }}
                         className="text-slate-600 hover:text-red-400 transition-colors text-xs font-mono"
                       >
                         🗑
@@ -634,42 +636,42 @@ function EvaluatorsView({ evaluators, setEvaluators }: { evaluators: Evaluator[]
         <Pagination {...pg} />
       </Panel>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title={editingEval ? "Editar Evaluador" : "Nuevo Evaluador"}
       >
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Nombre Completo</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.name || ""} 
-              onChange={e => setForm({...form, name: e.target.value})} 
+              value={form.name || ""}
+              onChange={e => setForm({ ...form, name: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Especialidad</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.specialty || ""} 
-              onChange={e => setForm({...form, specialty: e.target.value})} 
+              value={form.specialty || ""}
+              onChange={e => setForm({ ...form, specialty: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Proyecto ID</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.project || ""} 
-              onChange={e => setForm({...form, project: e.target.value})} 
+              value={form.project || ""}
+              onChange={e => setForm({ ...form, project: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Estado</span>
-            <select 
+            <select
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.status || "Pendiente"} 
-              onChange={e => setForm({...form, status: e.target.value as Status})} 
+              value={form.status || "Pendiente"}
+              onChange={e => setForm({ ...form, status: e.target.value as Status })}
             >
               <option value="Pendiente">Pendiente</option>
               <option value="En progreso">En progreso</option>
@@ -679,20 +681,20 @@ function EvaluatorsView({ evaluators, setEvaluators }: { evaluators: Evaluator[]
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Puntaje (0-100)</span>
-            <input 
+            <input
               type="number"
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.score || ""} 
-              onChange={e => setForm({...form, score: Number(e.target.value)})} 
+              value={form.score || ""}
+              onChange={e => setForm({ ...form, score: Number(e.target.value) })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Hallazgos</span>
-            <input 
+            <input
               type="number"
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.findings || 0} 
-              onChange={e => setForm({...form, findings: Number(e.target.value)})} 
+              value={form.findings || 0}
+              onChange={e => setForm({ ...form, findings: Number(e.target.value) })}
             />
           </div>
         </div>
@@ -727,12 +729,12 @@ function SolversView({ issues, setIssues }: { issues: Issue[], setIssues: React.
   const pg = usePagination(filtered, 10);
 
   const counts = [
-    { l:"Críticas", v: issues.filter(i=>i.priority==="Crítica"&&i.status!=="Completado").length, c:"text-red-400" },
-    { l:"Altas", v: issues.filter(i=>i.priority==="Alta"&&i.status!=="Completado").length, c:"text-orange-400" },
-    { l:"Bloqueadas", v: issues.filter(i=>i.status==="Bloqueado").length, c:"text-red-300" },
-    { l:"En Revisión", v: issues.filter(i=>i.status==="Revisión").length, c:"text-amber-400" },
-    { l:"En Progreso", v: issues.filter(i=>i.status==="En progreso").length, c:"text-blue-400" },
-    { l:"Resueltas", v: issues.filter(i=>i.status==="Completado").length, c:"text-emerald-400" },
+    { l: "Críticas", v: issues.filter(i => i.priority === "Crítica" && i.status !== "Completado").length, c: "text-red-400" },
+    { l: "Altas", v: issues.filter(i => i.priority === "Alta" && i.status !== "Completado").length, c: "text-orange-400" },
+    { l: "Bloqueadas", v: issues.filter(i => i.status === "Bloqueado").length, c: "text-red-300" },
+    { l: "En Revisión", v: issues.filter(i => i.status === "Revisión").length, c: "text-amber-400" },
+    { l: "En Progreso", v: issues.filter(i => i.status === "En progreso").length, c: "text-blue-400" },
+    { l: "Resueltas", v: issues.filter(i => i.status === "Completado").length, c: "text-emerald-400" },
   ];
 
   const openCreate = () => {
@@ -781,7 +783,7 @@ function SolversView({ issues, setIssues }: { issues: Issue[], setIssues: React.
                 <Select value={priorityF} onChange={setPriorityF} options={priorities} />
               </div>
             } />
-            <button 
+            <button
               onClick={openCreate}
               className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-[11px] font-mono transition-all flex items-center gap-2 border border-blue-400/30"
             >
@@ -811,7 +813,7 @@ function SolversView({ issues, setIssues }: { issues: Issue[], setIssues: React.
                   <Td mono><span className="text-slate-600">{i.opened}</span></Td>
                   <Td mono center><span className="text-slate-400">{i.estimated}</span></Td>
                   <Td>
-                    <span className={`text-[10px] font-mono ${i.impact==="Crítico"?"text-red-400":i.impact==="Alto"?"text-orange-400":i.impact==="Medio"?"text-amber-400":"text-slate-500"}`}>
+                    <span className={`text-[10px] font-mono ${i.impact === "Crítico" ? "text-red-400" : i.impact === "Alto" ? "text-orange-400" : i.impact === "Medio" ? "text-amber-400" : "text-slate-500"}`}>
                       {i.impact}
                     </span>
                   </Td>
@@ -820,8 +822,8 @@ function SolversView({ issues, setIssues }: { issues: Issue[], setIssues: React.
                   <Td center>
                     <div className="flex items-center gap-2 justify-center">
                       <button onClick={() => openEdit(i)} className="text-slate-600 hover:text-blue-400 transition-colors text-xs font-mono">✎</button>
-                      <button 
-                        onClick={() => { if(confirm(`¿Eliminar incidencia ${i.id}?`)) setIssues(prev => prev.filter(x => x.id !== i.id)) }} 
+                      <button
+                        onClick={() => { if (confirm(`¿Eliminar incidencia ${i.id}?`)) setIssues(prev => prev.filter(x => x.id !== i.id)) }}
                         className="text-slate-600 hover:text-red-400 transition-colors text-xs font-mono"
                       >
                         🗑
@@ -836,42 +838,42 @@ function SolversView({ issues, setIssues }: { issues: Issue[], setIssues: React.
         <Pagination {...pg} />
       </Panel>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title={editingIssue ? "Editar Incidencia" : "Nueva Incidencia"}
       >
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1 col-span-2">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Descripción de la Incidencia</span>
-            <textarea 
+            <textarea
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500 h-20"
-              value={form.issue || ""} 
-              onChange={e => setForm({...form, issue: e.target.value})} 
+              value={form.issue || ""}
+              onChange={e => setForm({ ...form, issue: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Proyecto ID</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.project || ""} 
-              onChange={e => setForm({...form, project: e.target.value})} 
+              value={form.project || ""}
+              onChange={e => setForm({ ...form, project: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Módulo</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.module || ""} 
-              onChange={e => setForm({...form, module: e.target.value})} 
+              value={form.module || ""}
+              onChange={e => setForm({ ...form, module: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Prioridad</span>
-            <select 
+            <select
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.priority || "Media"} 
-              onChange={e => setForm({...form, priority: e.target.value as Priority})} 
+              value={form.priority || "Media"}
+              onChange={e => setForm({ ...form, priority: e.target.value as Priority})}
             >
               <option value="Crítica">Crítica</option>
               <option value="Alta">Alta</option>
@@ -881,10 +883,10 @@ function SolversView({ issues, setIssues }: { issues: Issue[], setIssues: React.
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Estado</span>
-            <select 
+            <select
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.status || "Pendiente"} 
-              onChange={e => setForm({...form, status: e.target.value as Status})} 
+              value={form.status || "Pendiente"}
+              onChange={e => setForm({ ...form, status: e.target.value as Status })}
             >
               <option value="Pendiente">Pendiente</option>
               <option value="En progreso">En progreso</option>
@@ -925,16 +927,16 @@ function AuditorsView({ audits, setAudits }: { audits: Audit[], setAudits: React
   const pg = usePagination(filtered, 10);
 
   const riskCls: Record<string, string> = {
-    "Crítico":"text-red-400","Alto":"text-orange-400","Medio":"text-amber-400","Bajo":"text-emerald-400","—":"text-slate-700"
+    "Crítico": "text-red-400", "Alto": "text-orange-400", "Medio": "text-amber-400", "Bajo": "text-emerald-400", "—": "text-slate-700"
   };
 
   const stats = [
-    { l:"Aprobadas",   v: audits.filter(a=>a.status==="Aprobado").length,   c:"text-emerald-400" },
-    { l:"Observadas",  v: audits.filter(a=>a.status==="Observado").length,  c:"text-amber-400" },
-    { l:"En proceso",  v: audits.filter(a=>a.status==="En progreso").length,c:"text-blue-400" },
-    { l:"Programadas", v: audits.filter(a=>a.status==="Pendiente").length,  c:"text-slate-400" },
-    { l:"Obs. críticas",v: audits.reduce((s,a)=>s+a.criticalObs,0), c:"text-red-400" },
-    { l:"Total obs.",  v: audits.reduce((s,a)=>s+a.observations,0), c:"text-amber-400" },
+    { l: "Aprobadas", v: audits.filter(a => a.status === "Aprobado").length, c: "text-emerald-400" },
+    { l: "Observadas", v: audits.filter(a => a.status === "Observado").length, c: "text-amber-400" },
+    { l: "En proceso", v: audits.filter(a => a.status === "En progreso").length, c: "text-blue-400" },
+    { l: "Programadas", v: audits.filter(a => a.status === "Pendiente").length, c: "text-slate-400" },
+    { l: "Obs. críticas", v: audits.reduce((s, a) => s + a.criticalObs, 0), c: "text-red-400" },
+    { l: "Total obs.", v: audits.reduce((s, a) => s + a.observations, 0), c: "text-amber-400" },
   ];
 
   const openCreate = () => {
@@ -983,7 +985,7 @@ function AuditorsView({ audits, setAudits }: { audits: Audit[], setAudits: React
                 <Select value={typeF} onChange={setTypeF} options={types} />
               </div>
             } />
-            <button 
+            <button
               onClick={openCreate}
               className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-[11px] font-mono transition-all flex items-center gap-2 border border-blue-400/30"
             >
@@ -1018,8 +1020,8 @@ function AuditorsView({ audits, setAudits }: { audits: Audit[], setAudits: React
                   <Td center>
                     <div className="flex items-center gap-2 justify-center">
                       <button onClick={() => openEdit(a)} className="text-slate-600 hover:text-blue-400 transition-colors text-xs font-mono">✎</button>
-                      <button 
-                        onClick={() => { if(confirm(`¿Eliminar auditoría ${a.id}?`)) setAudits(prev => prev.filter(x => x.id !== a.id)) }} 
+                      <button
+                        onClick={() => { if (confirm(`¿Eliminar auditoría ${a.id}?`)) setAudits(prev => prev.filter(x => x.id !== a.id)) }}
                         className="text-slate-600 hover:text-red-400 transition-colors text-xs font-mono"
                       >
                         🗑
@@ -1034,42 +1036,42 @@ function AuditorsView({ audits, setAudits }: { audits: Audit[], setAudits: React
         <Pagination {...pg} />
       </Panel>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title={editingAudit ? "Editar Auditoría" : "Nueva Auditoría"}
       >
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Auditor</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.auditor || ""} 
-              onChange={e => setForm({...form, auditor: e.target.value})} 
+              value={form.auditor || ""}
+              onChange={e => setForm({ ...form, auditor: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Proyecto ID</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.project || ""} 
-              onChange={e => setForm({...form, project: e.target.value})} 
+              value={form.project || ""}
+              onChange={e => setForm({ ...form, project: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Tipo</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.type || ""} 
-              onChange={e => setForm({...form, type: e.target.value})} 
+              value={form.type || ""}
+              onChange={e => setForm({ ...form, type: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Estado</span>
-            <select 
+            <select
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.status || "Pendiente"} 
-              onChange={e => setForm({...form, status: e.target.value as Status})} 
+              value={form.status || "Pendiente"}
+              onChange={e => setForm({ ...form, status: e.target.value as Status })}
             >
               <option value="Pendiente">Pendiente</option>
               <option value="En progreso">En progreso</option>
@@ -1079,10 +1081,10 @@ function AuditorsView({ audits, setAudits }: { audits: Audit[], setAudits: React
           </div>
           <div className="flex flex-col gap-1 col-span-2">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Alcance</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.scope || ""} 
-              onChange={e => setForm({...form, scope: e.target.value})} 
+              value={form.scope || ""}
+              onChange={e => setForm({ ...form, scope: e.target.value })}
             />
           </div>
         </div>
@@ -1117,12 +1119,12 @@ function DeliveriesView({ deliveries, setDeliveries }: { deliveries: Delivery[],
   const pg = usePagination(filtered, 10);
 
   const stats = [
-    { l:"Entregados", v: deliveries.filter(d=>d.status==="Entregado").length, c:"text-cyan-400" },
-    { l:"En proceso", v: deliveries.filter(d=>d.status==="En progreso").length, c:"text-blue-400" },
-    { l:"En revisión", v: deliveries.filter(d=>d.status==="Revisión").length, c:"text-amber-400" },
-    { l:"Pendientes", v: deliveries.filter(d=>d.status==="Pendiente").length, c:"text-slate-400" },
-    { l:"Vencidos", v: deliveries.filter(d=>d.status!=="Entregado"&&d.deadline<"2026-09-08").length, c:"text-red-400" },
-    { l:"Hitos totales", v: deliveries.length, c:"text-slate-300" },
+    { l: "Entregados", v: deliveries.filter(d => d.status === "Entregado").length, c: "text-cyan-400" },
+    { l: "En proceso", v: deliveries.filter(d => d.status === "En progreso").length, c: "text-blue-400" },
+    { l: "En revisión", v: deliveries.filter(d => d.status === "Revisión").length, c: "text-amber-400" },
+    { l: "Pendientes", v: deliveries.filter(d => d.status === "Pendiente").length, c: "text-slate-400" },
+    { l: "Vencidos", v: deliveries.filter(d => d.status !== "Entregado" && d.deadline < "2026-09-08").length, c: "text-red-400" },
+    { l: "Hitos totales", v: deliveries.length, c: "text-slate-300" },
   ];
 
   const openCreate = () => {
@@ -1171,7 +1173,7 @@ function DeliveriesView({ deliveries, setDeliveries }: { deliveries: Delivery[],
                 <Select value={typeF} onChange={setTypeF} options={types} />
               </div>
             } />
-            <button 
+            <button
               onClick={openCreate}
               className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-[11px] font-mono transition-all flex items-center gap-2 border border-blue-400/30"
             >
@@ -1212,8 +1214,8 @@ function DeliveriesView({ deliveries, setDeliveries }: { deliveries: Delivery[],
                     <Td center>
                       <div className="flex items-center gap-2 justify-center">
                         <button onClick={() => openEdit(d)} className="text-slate-600 hover:text-blue-400 transition-colors text-xs font-mono">✎</button>
-                        <button 
-                          onClick={() => { if(confirm(`¿Eliminar entrega ${d.id}?`)) setDeliveries(prev => prev.filter(x => x.id !== d.id)) }} 
+                        <button
+                          onClick={() => { if (confirm(`¿Eliminar entrega ${d.id}?`)) setDeliveries(prev => prev.filter(x => x.id !== d.id)) }}
                           className="text-slate-600 hover:text-red-400 transition-colors text-xs font-mono"
                         >
                           🗑
@@ -1229,34 +1231,34 @@ function DeliveriesView({ deliveries, setDeliveries }: { deliveries: Delivery[],
         <Pagination {...pg} />
       </Panel>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title={editingDelivery ? "Editar Entrega" : "Nuevo Hito de Entrega"}
       >
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1 col-span-2">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Hito / Nombre del Entregable</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.milestone || ""} 
-              onChange={e => setForm({...form, milestone: e.target.value})} 
+              value={form.milestone || ""}
+              onChange={e => setForm({ ...form, milestone: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Proyecto ID</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.project || ""} 
-              onChange={e => setForm({...form, project: e.target.value})} 
+              value={form.project || ""}
+              onChange={e => setForm({ ...form, project: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Estado</span>
-            <select 
+            <select
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.status || "Pendiente"} 
-              onChange={e => setForm({...form, status: e.target.value as Status})} 
+              value={form.status || "Pendiente"}
+              onChange={e => setForm({ ...form, status: e.target.value as Status })}
             >
               <option value="Pendiente">Pendiente</option>
               <option value="En progreso">En progreso</option>
@@ -1266,19 +1268,19 @@ function DeliveriesView({ deliveries, setDeliveries }: { deliveries: Delivery[],
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Responsable</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.responsible || ""} 
-              onChange={e => setForm({...form, responsible: e.target.value})} 
+              value={form.responsible || ""}
+              onChange={e => setForm({ ...form, responsible: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Vencimiento</span>
-            <input 
+            <input
               type="date"
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.deadline || ""} 
-              onChange={e => setForm({...form, deadline: e.target.value})} 
+              value={form.deadline || ""}
+              onChange={e => setForm({ ...form, deadline: e.target.value })}
             />
           </div>
         </div>
@@ -1350,19 +1352,19 @@ function SecurityView({ events, setEvents, users, setUsers }: { events: Security
     <div className="space-y-4">
       {/* Security KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KPI label="Alertas Críticas (72h)" value={String(events.filter(e=>e.severity==="Crítico").length)} sub="Requieren revisión" color="text-red-400" icon="⚠" />
-        <KPI label="Intentos Fallidos" value={String(events.filter(e=>e.result==="Fallido"||e.result==="Denegado").length)} sub="Login · acceso · permisos" color="text-orange-400" icon="⊗" />
-        <KPI label="Usuarios Activos" value={String(users.filter(u=>u.status==="Activo").length)} sub={`${users.filter(u=>u.mfa).length}/${users.length} con MFA`} color="text-blue-400" icon="◎" />
-        <KPI label="Suspendidos" value={String(users.filter(u=>u.status==="Suspendido").length)} sub="Acceso revocado" color="text-amber-400" icon="⊘" />
+        <KPI label="Alertas Críticas (72h)" value={String(events.filter(e => e.severity === "Crítico").length)} sub="Requieren revisión" color="text-red-400" icon="⚠" />
+        <KPI label="Intentos Fallidos" value={String(events.filter(e => e.result === "Fallido" || e.result === "Denegado").length)} sub="Login · acceso · permisos" color="text-orange-400" icon="⊗" />
+        <KPI label="Usuarios Activos" value={String(users.filter(u => u.status === "Activo").length)} sub={`${users.filter(u => u.mfa).length}/${users.length} con MFA`} color="text-blue-400" icon="◎" />
+        <KPI label="Suspendidos" value={String(users.filter(u => u.status === "Suspendido").length)} sub="Acceso revocado" color="text-amber-400" icon="⊘" />
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[#1c2f47]">
-        {(["events","users"] as const).map(t => (
+        {(["events", "users"] as const).map(t => (
           <button
             key={t}
             onClick={() => { setActiveTab(t); setQ(""); }}
-            className={`px-4 py-2 text-[11px] font-mono uppercase tracking-wider transition-colors ${activeTab===t ? "text-blue-400 border-b-2 border-blue-500 -mb-px" : "text-slate-600 hover:text-slate-400"}`}
+            className={`px-4 py-2 text-[11px] font-mono uppercase tracking-wider transition-colors ${activeTab === t ? "text-blue-400 border-b-2 border-blue-500 -mb-px" : "text-slate-600 hover:text-slate-400"}`}
           >
             {t === "events" ? `Log de Eventos (${events.length})` : `Usuarios y Roles (${users.length})`}
           </button>
@@ -1378,8 +1380,8 @@ function SecurityView({ events, setEvents, users, setUsers }: { events: Security
               <SearchBar value={q} onChange={v => { setQ(v); pgEv.reset(); }} placeholder="Usuario, acción, módulo, IP…" extra={
                 <Select value={sevF} onChange={setSevF} options={severities} />
               } />
-              <button 
-                onClick={() => { if(confirm("¿Limpiar logs de seguridad?")) setEvents([]) }} 
+              <button
+                onClick={() => { if (confirm("¿Limpiar logs de seguridad?")) setEvents([]) }}
                 className="text-slate-600 hover:text-red-400 transition-colors text-[11px] font-mono border border-[#1c2f47] px-2 py-1 rounded"
               >
                 Limpiar Log
@@ -1426,7 +1428,7 @@ function SecurityView({ events, setEvents, users, setUsers }: { events: Security
           toolbar={
             <div className="flex flex-wrap gap-3 items-center">
               <SearchBar value={q} onChange={v => { setQ(v); pgUsr.reset(); }} placeholder="Nombre, email, rol, departamento…" />
-              <button 
+              <button
                 onClick={openCreateUser}
                 className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-[11px] font-mono transition-all flex items-center gap-2 border border-blue-400/30"
               >
@@ -1468,8 +1470,8 @@ function SecurityView({ events, setEvents, users, setUsers }: { events: Security
                     <Td center>
                       <div className="flex items-center gap-2 justify-center">
                         <button onClick={() => openEditUser(u)} className="text-slate-600 hover:text-blue-400 transition-colors text-xs font-mono">✎</button>
-                        <button 
-                          onClick={() => { if(confirm(`¿Eliminar usuario ${u.id}?`)) setUsers(prev => prev.filter(x => x.id !== u.id)) }} 
+                        <button
+                          onClick={() => { if (confirm(`¿Eliminar usuario ${u.id}?`)) setUsers(prev => prev.filter(x => x.id !== u.id)) }}
                           className="text-slate-600 hover:text-red-400 transition-colors text-xs font-mono"
                         >
                           🗑
@@ -1485,42 +1487,42 @@ function SecurityView({ events, setEvents, users, setUsers }: { events: Security
         </Panel>
       )}
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title={editingUser ? "Editar Usuario" : "Nuevo Usuario"}
       >
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Nombre Completo</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.name || ""} 
-              onChange={e => setForm({...form, name: e.target.value})} 
+              value={form.name || ""}
+              onChange={e => setForm({ ...form, name: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Email Institucional</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.email || ""} 
-              onChange={e => setForm({...form, email: e.target.value})} 
+              value={form.email || ""}
+              onChange={e => setForm({ ...form, email: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Rol</span>
-            <input 
+            <input
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.role || ""} 
-              onChange={e => setForm({...form, role: e.target.value})} 
+              value={form.role || ""}
+              onChange={e => setForm({ ...form, role: e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-mono text-slate-600 uppercase">Estado</span>
-            <select 
+            <select
               className="bg-[#111d2e] border border-[#1c2f47] rounded px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-blue-500"
-              value={form.status || "Activo"} 
-              onChange={e => setForm({...form, status: e.target.value as any})} 
+              value={form.status || "Activo"}
+              onChange={e => setForm({ ...form, status: e.target.value as any })}
             >
               <option value="Activo">Activo</option>
               <option value="Inactivo">Inactivo</option>
@@ -1552,30 +1554,30 @@ function Select({ value, onChange, options }: { value: string; onChange: (v: str
 
 /* ─── Nav config ─── */
 const NAV_CONFIG: { key: View; label: string; icon: string }[] = [
-  { key:"dashboard",   label:"Panel",         icon:"▦" },
-  { key:"projects",    label:"Proyectos",      icon:"◈" },
-  { key:"evaluators",  label:"Evaluadores",    icon:"◎" },
-  { key:"solvers",     label:"Solucionadores", icon:"⚙" },
-  { key:"auditors",    label:"Auditores",      icon:"⊞" },
-  { key:"deliveries",  label:"Entregas",       icon:"◫" },
-  { key:"security",    label:"Seguridad",      icon:"⊕" },
+  { key: "dashboard", label: "Panel", icon: "▦" },
+  { key: "projects", label: "Proyectos", icon: "◈" },
+  { key: "evaluators", label: "Evaluadores", icon: "◎" },
+  { key: "solvers", label: "Solucionadores", icon: "⚙" },
+  { key: "auditors", label: "Auditores", icon: "⊞" },
+  { key: "deliveries", label: "Entregas", icon: "◫" },
+  { key: "security", label: "Seguridad", icon: "⊕" },
 ];
 
 const PAGE_TITLE: Record<View, string> = {
-  dashboard:  "Panel General",
-  projects:   "Gestión de Proyectos",
+  dashboard: "Panel General",
+  projects: "Gestión de Proyectos",
   evaluators: "Evaluadores",
-  solvers:    "Solucionadores de Incidencias",
-  auditors:   "Auditorías",
+  solvers: "Solucionadores de Incidencias",
+  auditors: "Auditorías",
   deliveries: "Control de Entregas",
-  security:   "Seguridad y Accesos",
+  security: "Seguridad y Accesos",
 };
 
 /* ─── App root ─── */
 export default function App() {
   const [view, setView] = useState<View>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
-  
+
   // Global States
   const [projectsState, setProjectsState] = useState<Project[]>(initialProjects);
   const [evaluatorsState, setEvaluatorsState] = useState<Evaluator[]>(initialEvaluators);
@@ -1619,7 +1621,7 @@ export default function App() {
   }, [projectsState, evaluatorsState, issuesState, auditsState, deliveriesState, securityEventsState, userRolesState]);
 
   return (
-    <div className="h-full flex bg-[#05090f] text-slate-100 overflow-hidden" style={{ fontFamily:"'DM Sans',system-ui,sans-serif" }}>
+    <div className="h-full flex bg-[#05090f] text-slate-100 overflow-hidden" style={{ fontFamily: "'DM Sans',system-ui,sans-serif" }}>
 
       {/* ── Sidebar ── */}
       <aside className={`flex flex-col flex-shrink-0 bg-[#090e18] border-r border-[rgba(255,255,255,0.06)] transition-all duration-200 ${collapsed ? "w-12" : "w-52"}`}>
@@ -1647,22 +1649,21 @@ export default function App() {
           )}
           {NAV_CONFIG.map(n => {
             const active = view === n.key;
-            const count = n.key === "projects" ? projectsState.length : 
-                          n.key === "evaluators" ? evaluatorsState.length : 
-                          n.key === "solvers" ? issuesState.length : 
-                          n.key === "auditors" ? auditsState.length : 
-                          n.key === "deliveries" ? deliveriesState.length : 
-                          n.key === "security" ? securityEventsState.length : 0;
+            const count = n.key === "projects" ? projectsState.length :
+              n.key === "evaluators" ? evaluatorsState.length :
+                n.key === "solvers" ? issuesState.length :
+                  n.key === "auditors" ? auditsState.length :
+                    n.key === "deliveries" ? deliveriesState.length :
+                      n.key === "security" ? securityEventsState.length : 0;
             return (
               <button
                 key={n.key}
                 onClick={() => setView(n.key)}
                 title={collapsed ? n.label : undefined}
-                className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-md text-left transition-all tr-fast group ${
-                  active
+                className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-md text-left transition-all tr-fast group ${active
                     ? "bg-blue-500/15 text-blue-300 border border-blue-500/20"
                     : "text-slate-500 hover:text-slate-300 hover:bg-[rgba(255,255,255,0.04)] border border-transparent"
-                }`}
+                  }`}
               >
                 <span className={`text-sm w-5 text-center flex-shrink-0 ${active ? "text-blue-400" : "group-hover:text-slate-300"}`}>{n.icon}</span>
                 {!collapsed && (
@@ -1726,23 +1727,23 @@ export default function App() {
 
         {/* Content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-5">
-          {view === "dashboard"  && (
-            <DashboardView 
-              projects={projectsState} 
-              issues={issuesState} 
-              deliveries={deliveriesState} 
-              securityEvents={securityEventsState} 
-              evaluators={evaluatorsState} 
-              audits={auditsState} 
-              userRoles={userRolesState} 
+          {view === "dashboard" && (
+            <DashboardView
+              projects={projectsState}
+              issues={issuesState}
+              deliveries={deliveriesState}
+              securityEvents={securityEventsState}
+              evaluators={evaluatorsState}
+              audits={auditsState}
+              userRoles={userRolesState}
             />
           )}
-          {view === "projects"   && <ProjectsView projects={projectsState} setProjects={setProjectsState} />}
+          {view === "projects" && <ProjectsView projects={projectsState} setProjects={setProjectsState} />}
           {view === "evaluators" && <EvaluatorsView evaluators={evaluatorsState} setEvaluators={setEvaluatorsState} />}
-          {view === "solvers"    && <SolversView issues={issuesState} setIssues={setIssuesState} />}
-          {view === "auditors"   && <AuditorsView audits={auditsState} setAudits={setAuditsState} />}
+          {view === "solvers" && <SolversView issues={issuesState} setIssues={setIssuesState} />}
+          {view === "auditors" && <AuditorsView audits={auditsState} setAudits={setAuditsState} />}
           {view === "deliveries" && <DeliveriesView deliveries={deliveriesState} setDeliveries={setDeliveriesState} />}
-          {view === "security"   && <SecurityView events={securityEventsState} setEvents={setSecurityEventsState} users={userRolesState} setUsers={setUserRolesState} />}
+          {view === "security" && <SecurityView events={securityEventsState} setEvents={setSecurityEventsState} users={userRolesState} setUsers={setUserRolesState} />}
         </main>
       </div>
     </div>

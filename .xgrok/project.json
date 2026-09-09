@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "setup": "integrated",
+  "languages": [
+    "JavaScript/TypeScript",
+    "TypeScript"
+  ],
+  "stacks": [
+    "Node.js",
+    "TypeScript",
+    "React/Next"
+  ],
+  "markers": [
+    "package.json",
+    "tsconfig.json"
+  ],
+  "packageName": "analizis-master-engine",
+  "suggestedRun": "npm run dev",
+  "createdAt": "2026-09-09T00:12:33.584Z",
+  "tool": "xgrok"
+}

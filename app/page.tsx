@@ -100,7 +100,7 @@ export default function AnalizisSinglePageDashboard() {
           <div className="col-span-9 flex flex-col gap-4 h-full overflow-hidden">
             <div className="grid grid-cols-4 gap-3 shrink-0">
               {[
-                { title: 'INGRESOS TOTALES', val: `$${metrics.revenue.toLocaleString()}`, change: '+8.33%', pos: true },
+                { title: 'INGRESOS TOTALES', val: `$${metrics.revenue.toLocaleString('en-US')}`, change: '+8.33%', pos: true },
                 { title: 'TASA CONVERSIÓN', val: `${metrics.conversion}%`, change: '+16.67%', pos: true },
                 { title: 'RENOVACIONES', val: metrics.renewals, change: '-4.35%', pos: false },
                 { title: 'SUSCRIPTORES', val: metrics.subscribers, change: '+12%', pos: true },

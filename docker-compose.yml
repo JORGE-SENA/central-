@@ -1,16 +1,17 @@
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: gavac_postgres
+    container_name: central_postgres
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: gavac_db
+      POSTGRES_DB: central_db
     ports:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
 
 volumes:
   pgdata:

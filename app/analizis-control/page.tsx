@@ -11,7 +11,7 @@ import {
 
 const INITIAL_APPS = [
   { id: 1, name: 'Orígenes Kicks', owner: 'admin@origeneskicks.com', lic: 'OK-2026-PRO', status: 'ACTIVE' },
-  { id: 2, name: 'GAVAC Ganadería', owner: 'jh-gavac@ejemplo.com', lic: 'GV-88-STA', status: 'ACTIVE' },
+  { id: 2, name: 'Central Commerce', owner: 'admin@central.local', lic: 'CC-88-STA', status: 'ACTIVE' },
   { id: 3, name: 'Salud Premium', owner: 'dr-botero@ejemplo.com', lic: 'SP-22-ULT', status: 'ACTIVE' },
   { id: 4, name: 'FastAPI Nueva', owner: 'jorge@analizis.com', lic: 'FA-99-DEV', status: 'ACTIVE' },
 ];

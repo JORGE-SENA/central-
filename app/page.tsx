@@ -18,6 +18,18 @@ export default function AnalizisSinglePageDashboard() {
     renewals: 1200,
     subscribers: 650
   });
+  const [activeSection, setActiveSection] = useState('Tablero');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [feedback, setFeedback] = useState('');
+
+  const [teamMembers, setTeamMembers] = useState(['Rissa Pearson', 'Juan Gomez', 'Ana Lopez', 'Carlos Ruiz', 'Elena Sanz']);
+  const filteredMembers = teamMembers.filter(name => name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const showFeedback = (message: string) => {
+    setFeedback(message);
+    window.setTimeout(() => setFeedback(''), 2500);
+  };
 
   // Simular fluctuación de datos en tiempo real para no ser estáticos
   useEffect(() => {
@@ -30,6 +42,17 @@ export default function AnalizisSinglePageDashboard() {
       }));
     }, 3000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/dashboard')
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (data?.members) {
+          setTeamMembers(data.members.map((member: { name: string }) => member.name));
+        }
+      })
+      .catch(() => showFeedback('Modo local: usando datos de demostración'));
   }, []);
 
   return (
@@ -48,7 +71,7 @@ export default function AnalizisSinglePageDashboard() {
         <nav className="flex-1 space-y-3 overflow-y-auto custom-scrollbar pr-1">
           <div className="space-y-1">
             <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] px-2 mb-1">Menú</p>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl font-bold text-[11px] uppercase italic bg-[#5E5CE6] text-white shadow-md">
+            <button onClick={() => { setActiveSection('Tablero'); showFeedback('Tablero seleccionado'); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl font-bold text-[11px] uppercase italic bg-[#5E5CE6] text-white shadow-md">
               <LayoutGrid size={14} /> <span>Tablero</span>
             </button>
           </div>
@@ -56,14 +79,14 @@ export default function AnalizisSinglePageDashboard() {
             { label: 'Herramientas Admin', items: ['Productos', 'Clientes', 'Analíticas'] },
             { label: 'Perspectivas', items: ['Notificaciones', 'Mensajes', 'Ajustes'] },
             { label: 'Elementos', items: ['Componentes', 'Formularios', 'Tablas'] }
-          ].map((group, idx) => (
-            <div key={idx}>
+          ].map((group) => (
+            <div key={group.label}>
               <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] px-2 mb-1">{group.label}</p>
-              {group.items.map((item, i) => (
-                <div key={i} className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl font-bold text-[11px] uppercase italic text-white/40 hover:text-white transition-colors cursor-pointer">
+              {group.items.map((item) => (
+                <button key={item} onClick={() => { setActiveSection(item); showFeedback(`${item} seleccionado`); }} className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl font-bold text-[11px] uppercase italic transition-colors ${activeSection === item ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white'}`}>
                   <span>{item}</span>
                   <ChevronRight size={12} className="opacity-30" />
-                </div>
+                </button>
               ))}
             </div>
           )) }
@@ -72,7 +95,7 @@ export default function AnalizisSinglePageDashboard() {
         <div className="bg-[#13131A] p-3 rounded-2xl border border-white/10 mt-2 shrink-0">
           <p className="text-[9px] font-black uppercase italic mb-0.5 text-white">Actualiza a Pro</p>
           <p className="text-[8px] text-white/40 mb-2 leading-tight">Lleva tu gestión al siguiente nivel.</p>
-          <button className="w-full bg-[#5E5CE6] hover:bg-blue-600 text-white rounded-xl py-2 font-black uppercase italic text-[9px] transition-all shadow-md flex items-center justify-center gap-1.5">
+          <button onClick={() => showFeedback('La actualización Pro estará disponible pronto')} className="w-full bg-[#5E5CE6] hover:bg-blue-600 text-white rounded-xl py-2 font-black uppercase italic text-[9px] transition-all shadow-md flex items-center justify-center gap-1.5">
             <Crown size={12} /> Actualizar Ahora
           </button>
         </div>
@@ -84,19 +107,27 @@ export default function AnalizisSinglePageDashboard() {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={15} />
             <input
               type="text"
-              placeholder="Hola Olivia, ¡bienvenida de nuevo!"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Buscar miembros del equipo..."
               className="w-full bg-[#0F0F12] border border-white/10 rounded-xl py-2 pl-10 pr-4 outline-none font-bold text-xs text-white placeholder:text-white/40 shadow-inner"
             />
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[9px] font-black uppercase text-white/50 bg-[#0F0F12] border border-white/10 px-2.5 py-1.5 rounded-lg">ES</span>
-            <div className="w-9 h-9 rounded-xl bg-[#0F0F12] border border-white/10 flex items-center justify-center text-white/60"><Activity size={14} /></div>
-            <div className="w-9 h-9 rounded-xl bg-[#0F0F12] border border-white/10 flex items-center justify-center text-white/60"><Bell size={14} /></div>
+            <button onClick={() => showFeedback('Actividad sincronizada')} aria-label="Actualizar actividad" className="w-9 h-9 rounded-xl bg-[#0F0F12] border border-white/10 flex items-center justify-center text-white/60 hover:text-white"><Activity size={14} /></button>
+            <div className="relative">
+              <button onClick={() => setShowNotifications(value => !value)} aria-label="Abrir notificaciones" className="w-9 h-9 rounded-xl bg-[#0F0F12] border border-white/10 flex items-center justify-center text-white/60 hover:text-white"><Bell size={14} /></button>
+              {showNotifications && <div className="absolute right-0 top-11 z-30 w-56 rounded-xl border border-white/10 bg-[#16161D] p-3 shadow-xl">
+                <p className="text-[9px] font-black uppercase text-white">Notificaciones</p>
+                <p className="mt-2 text-[10px] text-white/60">Tienes 3 reportes pendientes de revisión.</p>
+              </div>}
+            </div>
             <div className="w-9 h-9 rounded-xl bg-[#5E5CE6] text-white font-black flex items-center justify-center italic shadow-md text-xs">A</div>
           </div>
         </header>
 
-        <div className="flex-1 grid grid-cols-12 gap-4 overflow-hidden">
+        {activeSection === 'Tablero' ? <div className="flex-1 grid grid-cols-12 gap-4 overflow-hidden">
           <div className="col-span-9 flex flex-col gap-4 h-full overflow-hidden">
             <div className="grid grid-cols-4 gap-3 shrink-0">
               {[
@@ -141,8 +172,8 @@ export default function AnalizisSinglePageDashboard() {
               <span className="text-[8px] font-bold text-white/50 bg-white/5 px-2 py-1 rounded-lg">Recientes</span>
             </div>
             <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar pr-1">
-              {['Rissa Pearson', 'Juan Gomez', 'Ana Lopez', 'Carlos Ruiz', 'Elena Sanz'].map((name, i) => (
-                <div key={i} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 group cursor-pointer hover:bg-white/5 px-1 rounded-lg transition-colors">
+              {filteredMembers.map((name, i) => (
+                <button key={name} onClick={() => showFeedback(`${name} seleccionado`)} className="w-full flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 group cursor-pointer hover:bg-white/5 px-1 rounded-lg transition-colors text-left">
                   <div className="flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-lg bg-[#1E1E2A] border border-white/10 flex items-center justify-center font-black text-[10px] text-blue-400 italic">
                       {name.split(' ').map(n => n[0]).join('')}
@@ -153,15 +184,40 @@ export default function AnalizisSinglePageDashboard() {
                     </div>
                   </div>
                   <span className="text-[8px] font-bold text-white/30">{(i+1)*2}m</span>
-                </div>
+                </button>
               ))}
+              {filteredMembers.length === 0 && <p className="py-4 text-center text-[9px] text-white/40">Sin resultados</p>}
             </div>
             <div className="pt-2 border-t border-white/5 text-center shrink-0">
-              <span className="text-[9px] font-black uppercase tracking-widest text-[#5E5CE6] cursor-pointer hover:underline">Ver Detalles →</span>
+              <button onClick={() => showFeedback(`${filteredMembers.length} miembros visibles`)} className="text-[9px] font-black uppercase tracking-widest text-[#5E5CE6] hover:underline">Ver Detalles →</button>
             </div>
           </div>
-        </div>
+        </div> : <section className="flex-1 overflow-y-auto rounded-2xl border border-white/10 bg-[#0F0F12] p-6">
+          <div className="flex items-center justify-between border-b border-white/10 pb-5">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#5E5CE6]">Módulo activo</p>
+              <h2 className="mt-1 text-2xl font-black uppercase italic text-white">{activeSection}</h2>
+            </div>
+            <button onClick={() => showFeedback(`${activeSection} actualizado`)} className="rounded-xl bg-[#5E5CE6] px-4 py-2 text-[10px] font-black uppercase italic text-white hover:bg-blue-600">Actualizar</button>
+          </div>
+          <div className="mt-6 grid grid-cols-3 gap-4">
+            {[
+              { label: 'Registros', value: activeSection === 'Clientes' ? '248' : '36' },
+              { label: 'Activos', value: activeSection === 'Notificaciones' ? '3' : '94%' },
+              { label: 'Última actualización', value: 'Ahora' },
+            ].map(card => <div key={card.label} className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-[9px] font-black uppercase tracking-widest text-white/40">{card.label}</p>
+              <p className="mt-2 text-xl font-black italic text-white">{card.value}</p>
+            </div>)}
+          </div>
+          <div className="mt-6 rounded-xl border border-white/10 bg-black/20 p-5">
+            <h3 className="text-sm font-black uppercase italic text-white">Acciones de {activeSection}</h3>
+            <p className="mt-2 text-xs text-white/50">Este módulo ya está conectado al menú y listo para recibir tus datos.</p>
+            <button onClick={() => showFeedback(`Nueva acción en ${activeSection}`)} className="mt-5 rounded-xl border border-[#5E5CE6] px-4 py-2 text-[10px] font-black uppercase text-[#8b89ff] hover:bg-[#5E5CE6] hover:text-white">Crear nuevo registro</button>
+          </div>
+        </section>}
       </main>
+      {feedback && <div className="fixed bottom-5 right-5 z-50 rounded-xl border border-white/10 bg-[#16161D] px-4 py-3 text-[10px] font-bold text-white shadow-xl">{feedback}</div>}
     </div>
   );
 }

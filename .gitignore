@@ -16,6 +16,9 @@ dist/
 .env*.local
 .env.local
 
+# Backups created automatically by scripts/dev-local.sh
+backups/
+
 # Debug logs
 npm-debug.log*
 yarn-debug.log*
